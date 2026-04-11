@@ -13,7 +13,12 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera",
+        "NSSpeechRecognitionUsageDescription": "Allow $(PRODUCT_NAME) to use speech recognition.",
+        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use the microphone."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,10 +26,29 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.pratyansha_rana.LOKAWAZK"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "react-native-vision-camera",
+      "react-native-fast-tflite",
+      "expo-sqlite",
+      "expo-speech-recognition",
+      "expo-audio"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "eb0be02f-a4e2-4397-b5e8-d4b72b9524d1"
+      }
+    },
+    "owner": "pratyansha_rana"
   }
 }
