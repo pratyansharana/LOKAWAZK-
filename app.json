@@ -7,20 +7,24 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera",
-        "NSSpeechRecognitionUsageDescription": "Allow $(PRODUCT_NAME) to use speech recognition.",
-        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use the microphone."
+        "NSCameraUsageDescription": "Allow app to access your camera",
+        "NSSpeechRecognitionUsageDescription": "Allow app to use speech recognition",
+        "NSMicrophoneUsageDescription": "Allow app to use the microphone"
       }
     },
+
     "android": {
+      "package": "com.pratyansha_rana.LOKAWAZK",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -31,24 +35,36 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
-      ],
-      "package": "com.pratyansha_rana.LOKAWAZK"
+      ]
     },
+
     "web": {
       "favicon": "./assets/favicon.png"
     },
+
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ],
       "react-native-vision-camera",
       "react-native-fast-tflite",
       "expo-sqlite",
       "expo-speech-recognition",
-      "expo-audio"
+      "expo-audio",
+      "@react-native-google-signin/google-signin"
     ],
+
     "extra": {
       "eas": {
         "projectId": "eb0be02f-a4e2-4397-b5e8-d4b72b9524d1"
       }
     },
+
     "owner": "pratyansha_rana"
   }
 }
