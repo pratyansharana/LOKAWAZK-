@@ -1,126 +1,203 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import { 
+  StyleSheet, View, Text, TouchableOpacity, ScrollView, 
+  Dimensions, SafeAreaView, StatusBar 
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { collection, query, onSnapshot } from 'firebase/firestore';
+import { auth, db } from '../Firebase/FirebaseConfig';
+import { useAppTheme } from '../Context/Themecontext';
 
 const { width } = Dimensions.get('window');
 
+const CATEGORIES = [
+  { id: '1', title: 'Electricity', emoji: '💡' },
+  { id: '2', title: 'Sanitation', emoji: '💧' },
+  { id: '3', title: 'Garbage', emoji: '🗑️' },
+  { id: '4', title: 'Roads', emoji: '🛣️' },
+  { id: '5', title: 'My detections', emoji: '⚠️' },
+  { id: '6', title: 'Other', emoji: '🔳' },
+];
+// ... (keep your existing imports and CATEGORIES array)
+
 const HomeScreen = () => {
   const navigation = useNavigation();
+  const { theme, themeName, toggleTheme } = useAppTheme();
+  // Changed default state to 'My detections' to match your array
+  const [selectedCategory, setSelectedCategory] = useState('My detections'); 
+  const [totalPotholes, setTotalPotholes] = useState(0);
+
+  useEffect(() => {
+    const q = query(collection(db, 'pothole_reports'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setTotalPotholes(snapshot.size);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 18) return "Good Afternoon";
+    return "Good Evening";
+  };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Top Welcome Section */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.welcomeText}>Welcome, Operator</Text>
-          <Text style={styles.dateText}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</Text>
-        </View>
-        <TouchableOpacity style={styles.profileBtn} onPress={() => navigation.navigate('Profile')}>
-          <Ionicons name="person-circle-outline" size={40} color="#FF3B30" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Main Action Card: Launch Sensing */}
-      <TouchableOpacity 
-        style={styles.mainActionCard}
-        onPress={() => navigation.navigate('Dashcam')}
-      >
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardTitle}>START SCANNING</Text>
-          <Text style={styles.cardDesc}>Initialize AI-vision for road quality monitoring.</Text>
-        </View>
-        <Ionicons name="scan-outline" size={50} color="#FFF" />
-      </TouchableOpacity>
-
-      {/* Stats Grid */}
-      <View style={styles.statsGrid}>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>POTHOLES</Text>
-          <Text style={styles.statValue}>128</Text>
-          <Text style={styles.statSubText}>Total Detected</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>COORDINATES</Text>
-          <Text style={styles.statValue}>42</Text>
-          <Text style={styles.statSubText}>Sync Pending</Text>
-        </View>
-      </View>
-
-      {/* Quick Access Menu */}
-      <View style={styles.menuSection}>
-        <Text style={styles.sectionTitle}>SYSTEM MODULES</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={theme.status as any} />
+      
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Nearby')}>
-          <Ionicons name="location-outline" size={24} color="#FF3B30" />
-          <Text style={styles.menuText}>Nearby Hazard Map</Text>
-          <Ionicons name="chevron-forward" size={20} color="#333" />
+        {/* --- USER GREETING SECTION --- */}
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={[styles.greetingText, { color: theme.textSecondary }]}>
+              {getGreeting()},
+            </Text>
+            <Text style={[styles.userName, { color: theme.textPrimary }]}>
+              {auth.currentUser?.displayName || 'Operator'}
+            </Text>
+          </View>
+          <TouchableOpacity 
+            style={[styles.themeToggle, { borderColor: theme.border }]} 
+            onPress={toggleTheme}
+          >
+            <Text style={{ fontSize: 20 }}>{themeName === 'light' ? "🌙" : "☀️"}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* --- STANDOUT DASHCAM BUTTON --- */}
+        <TouchableOpacity 
+          style={[styles.dashcamBtn, { backgroundColor: theme.primary }]}
+          onPress={() => navigation.navigate('Dashcam' as never)}
+        >
+          <View style={styles.dashcamContent}>
+            <View style={styles.dashcamTextWrapper}>
+              <Text style={styles.dashcamTitle}>LAUNCH DASHCAM</Text>
+              <Text style={styles.dashcamSubtitle}>START AI ROAD INSPECTION</Text>
+            </View>
+            <View style={styles.pulseContainer}>
+              <Text style={styles.dashcamEmoji}>🛡️</Text>
+            </View>
+          </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Report')}>
-          <Ionicons name="document-text-outline" size={24} color="#FF3B30" />
-          <Text style={styles.menuText}>Detection Logs</Text>
-          <Ionicons name="chevron-forward" size={20} color="#333" />
-        </TouchableOpacity>
+        {/* --- CATEGORY GRID --- */}
+        <View style={styles.grid}>
+          {CATEGORIES.map((item) => {
+            const isSelected = selectedCategory === item.title;
+            
+            return (
+              <TouchableOpacity 
+                key={item.id}
+                style={[
+                  styles.categoryCard, 
+                  { 
+                    backgroundColor: theme.surface,
+                    borderColor: isSelected ? theme.primary : 'transparent',
+                    borderWidth: isSelected ? 2 : 0,
+                  }
+                ]}
+                onPress={() => {
+                  setSelectedCategory(item.title);
+                  
+                  // 🔥 NAVIGATION LOGIC
+                  if (item.title === 'My detections') {
+                    // Make sure 'Mydetections' matches the name in your Stack/Tab Navigator
+                    navigation.navigate('Mydetections' as never); 
+                  }
+                }}
+              >
+                <Text style={styles.cardEmoji}>{item.emoji}</Text>
+                <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>{item.title}</Text>
+                
+                {/* Updated check to match your CATEGORIES array title */}
+                {item.title === 'My detections' && (
+                  <View style={[styles.badge, { backgroundColor: theme.primary }]}>
+                    <Text style={styles.badgeText}>{totalPotholes}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
-        <TouchableOpacity style={styles.menuItem}>
-          <Ionicons name="cloud-upload-outline" size={24} color="#FF3B30" />
-          <Text style={styles.menuText}>Cloud Sync Status</Text>
-          <Text style={styles.syncStatus}>98%</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
+
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0A0A' },
-  content: { padding: 20, paddingTop: 60 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 },
-  welcomeText: { color: '#FFF', fontSize: 24, fontWeight: 'bold' },
-  dateText: { color: '#666', fontSize: 14, marginTop: 4 },
-  profileBtn: { padding: 4 },
-  mainActionCard: {
-    backgroundColor: '#FF3B30',
-    borderRadius: 16,
-    padding: 24,
-    flexDirection: 'row',
+  container: { flex: 1 },
+  scrollContent: { padding: 25, paddingTop: 20 },
+  headerRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    elevation: 10,
-    shadowColor: '#FF3B30',
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    marginBottom: 30 
   },
-  cardInfo: { flex: 1 },
-  cardTitle: { color: '#FFF', fontSize: 22, fontWeight: '900', letterSpacing: 1 },
-  cardDesc: { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginTop: 4 },
-  statsGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 30 },
-  statBox: { 
-    backgroundColor: '#1A1A1A', 
-    width: (width - 55) / 2, 
-    padding: 20, 
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#333'
+  greetingText: { fontSize: 16, fontWeight: '600' },
+  userName: { fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+  themeToggle: { padding: 10, borderWidth: 1, borderRadius: 50 },
+  
+  // DASHCAM BUTTON STYLES
+  dashcamBtn: {
+    padding: 25,
+    borderRadius: 24,
+    marginBottom: 35,
+    elevation: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 8 },
   },
-  statLabel: { color: '#666', fontSize: 10, fontWeight: 'bold', letterSpacing: 1 },
-  statValue: { color: '#FFF', fontSize: 28, fontWeight: 'bold', marginVertical: 4 },
-  statSubText: { color: '#444', fontSize: 10 },
-  menuSection: { marginTop: 10 },
-  sectionTitle: { color: '#444', fontSize: 12, fontWeight: 'bold', letterSpacing: 2, marginBottom: 15 },
-  menuItem: { 
+  dashcamContent: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    backgroundColor: '#151515', 
-    padding: 18, 
-    borderRadius: 12, 
-    marginBottom: 10 
+    justifyContent: 'space-between' 
   },
-  menuText: { flex: 1, color: '#DDD', marginLeft: 15, fontSize: 16 },
-  syncStatus: { color: '#00FF00', fontWeight: 'bold' }
+  dashcamTextWrapper: { flex: 1 },
+  dashcamTitle: { color: '#FFF', fontSize: 20, fontWeight: '900', letterSpacing: 1 },
+  dashcamSubtitle: { color: 'rgba(255,255,255,0.7)', fontSize: 10, fontWeight: 'bold', marginTop: 4 },
+  dashcamEmoji: { fontSize: 36 },
+  pulseContainer: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    padding: 10,
+    borderRadius: 50,
+  },
+
+  // GRID STYLES
+  grid: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    justifyContent: 'space-between' 
+  },
+  categoryCard: {
+    width: (width - 70) / 2,
+    height: 130,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    position: 'relative'
+  },
+  cardEmoji: { fontSize: 34, marginBottom: 8 },
+  cardTitle: { fontSize: 14, fontWeight: '700' },
+  badge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  badgeText: { color: '#FFF', fontSize: 10, fontWeight: '900' }
 });
 
 export default HomeScreen;

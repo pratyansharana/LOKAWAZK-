@@ -3,6 +3,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './src/Firebase/FirebaseConfig';
 import AppNavigator from './src/navigation/AppNavigator';
+import { ThemeProvider } from './src/Context/Themecontext';
+
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -19,8 +21,11 @@ export default function App() {
   if (loading) return null;
 
   return (
-    <SafeAreaProvider>
-      <AppNavigator isAuthenticated={isAuthenticated} />
-    </SafeAreaProvider>
+    <ThemeProvider>
+       <SafeAreaProvider>
+         <AppNavigator />
+       </SafeAreaProvider>
+    </ThemeProvider>
   );
 }
+ 
