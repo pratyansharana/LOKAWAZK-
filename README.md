@@ -223,7 +223,7 @@ const parseYOLO = (output: any): Detection[] => {
 ### 📞 Contact & Portfolio
 Created by **Pratyansh Rana**  
 *   **GitHub:** [@pratyansharana](https://github.com/pratyansharana)  
-*   **LinkedIn:** [Your LinkedIn Profile]  
-*   **Email:** [Your Email Address]
+*   **LinkedIn:** [@pratyansharana](https://www.linkedin.com/in/pratyansha-rana-99699b306/)
+*   **Email:** pratyanshrana1@gmail.com
 
 *Feel free to reach out for inquiries, mobile-engineering roles, or collaboration opportunities!*
